@@ -1,0 +1,62 @@
+[
+  {
+    "listing": 1,
+    "title": "Display control module",
+    "file": "extracted_code/listing_01_display.h",
+    "note": "Extracted from PDF text; PDF spacing/line wrapping may require cleanup."
+  },
+  {
+    "listing": 2,
+    "title": "Main application logic (app)",
+    "file": "extracted_code/listing_02_app.h",
+    "note": "Extracted from PDF text; PDF spacing/line wrapping may require cleanup."
+  },
+  {
+    "listing": 3,
+    "title": "Application configuration (appconfig)",
+    "file": "extracted_code/listing_03_appconfig.h",
+    "note": "Extracted from PDF text; PDF spacing/line wrapping may require cleanup."
+  },
+  {
+    "listing": 4,
+    "title": "Display control module",
+    "file": "extracted_code/listing_04_display_module.h",
+    "note": "Extracted from PDF text; PDF spacing/line wrapping may require cleanup."
+  },
+  {
+    "listing": 5,
+    "title": "DAC driver",
+    "file": "extracted_code/listing_05_dac_driver.ino",
+    "note": "Extracted from PDF text; PDF spacing/line wrapping may require cleanup."
+  },
+  {
+    "listing": 6,
+    "title": "Input processing module",
+    "file": "extracted_code/listing_06_input.h",
+    "note": "Extracted from PDF text; PDF spacing/line wrapping may require cleanup."
+  },
+  {
+    "listing": 7,
+    "title": "Input mapping module",
+    "file": "extracted_code/listing_07_input_mapping.h",
+    "note": "Extracted from PDF text; PDF spacing/line wrapping may require cleanup."
+  },
+  {
+    "listing": 8,
+    "title": "Signal generator implementation",
+    "file": "extracted_code/listing_08_signal_gen.h",
+    "note": "Extracted from PDF text; PDF spacing/line wrapping may require cleanup."
+  },
+  {
+    "listing": 9,
+    "title": "Web application user interface (index.html)",
+    "file": "extracted_code/listing_09_index.html",
+    "note": "Extracted from PDF text; PDF spacing/line wrapping may require cleanup."
+  },
+  {
+    "listing": 10,
+    "title": "ESP32 backend implementation (sketch.ino)",
+    "file": "extracted_code/listing_10_sketch.ino",
+    "note": "Extracted from PDF text; PDF spacing/line wrapping may require cleanup."
+  }
+]

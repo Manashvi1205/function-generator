@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dual-Channel Function Generator</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080b10;
+      --panel: #0e1319;
+      --raised: #131920;
+      --border: #263241;
+      --muted: #8292a6;
+      --ch1: #00ffaa;
+      --ch2: #ff6b35;
+      --active: var(--ch1);
+      font-family: system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 28px 16px;
+      color: #e6eef8;
+      background:
+        linear-gradient(#00ffaa08 1px, transparent 1px),
+        linear-gradient(90deg, #00ffaa08 1px, transparent 1px), var(--bg);
+      background-size: 40px 40px;
+    }
+    main { width: min(100%, 520px); margin: auto; }
+    header, .panel, .summary div, .tabs button {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    header { display: flex; align-items: center; gap: 14px; padding: 18px 20px; }
+    header i {
+      width: 42px; height: 42px; border-radius: 10px; background: var(--ch1);
+      box-shadow: 0 0 24px #00ffaa66;
+    }
+    h1 { margin: 0; font-size: 1rem; text-transform: uppercase; letter-spacing: .06em; }
+    header p, label, small { color: var(--muted); }
+    header p { margin: 4px 0 0; font: .7rem ui-monospace, monospace; }
+    .tabs, .summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0; }
+    button { color: inherit; font: inherit; cursor: pointer; }
+    .tabs button { padding: 13px; color: var(--muted); font-weight: 700; }
+    .tabs button.active { color: var(--active); border-color: var(--active); }
+    .panel { overflow: hidden; }
+    .panel-head {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 20px; background: var(--raised); border-bottom: 1px solid var(--border);
+    }
+    .power {
+      padding: 6px 12px; border: 1px solid var(--active); border-radius: 999px;
+      background: color-mix(in srgb, var(--active) 12%, transparent); color: var(--active);
+      font: .7rem ui-monospace, monospace;
+    }
+    .power.off { color: var(--muted); border-color: var(--border); background: transparent; }
+    .scope { position: relative; height: 180px; background: #05080c; }
+    canvas { width: 100%; height: 100%; display: block; }
+    .scope span { position: absolute; top: 12px; font: .65rem ui-monospace, monospace; color: var(--muted); }
+    #scopeChannel { left: 14px; } #scopeWave { right: 14px; }
+    .readouts { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--border); }
+    .readouts label { padding: 15px 20px; font: .65rem ui-monospace, monospace; text-transform: uppercase; }
+    .readouts label + label { border-left: 1px solid var(--border); }
+    .value { display: flex; margin-top: 5px; color: var(--active); }
+    .value input, .value select {
+      min-width: 0; border: 0; outline: 0; color: inherit; background: transparent;
+      font: 700 1.3rem ui-monospace, monospace;
+    }
+    .value input { width: 75%; }
+    .value select { width: 55px; font-size: .75rem; }
+    .controls { padding: 20px; }
+    .waves { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .waves button {
+      padding: 12px 5px; border: 1px solid var(--border); border-radius: 10px;
+      color: var(--muted); background: var(--bg);
+    }
+    .waves button.active { color: var(--active); border-color: var(--active); }
+    .control { display: block; margin-top: 20px; font-size: .7rem; text-transform: uppercase; }
+    .control output { float: right; color: var(--active); font-family: ui-monospace, monospace; }
+    input[type="range"] { width: 100%; margin-top: 12px; accent-color: var(--active); }
+    .summary div { padding: 12px 14px; font: .72rem ui-monospace, monospace; }
+    .summary strong { display: block; margin-bottom: 4px; color: var(--muted); }
+    @media (max-width: 400px) {
+      .readouts { grid-template-columns: 1fr; }
+      .readouts label + label { border-left: 0; border-top: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header><i></i><div><h1>Function Generator</h1><p>DUAL-CHANNEL WAVEFORM CONTROL</p></div></header>
+  <nav class="tabs" aria-label="Channel">
+    <button id="tab1" class="active" type="button">● Channel 1</button>
+    <button id="tab2" type="button">● Channel 2</button>
+  </nav>
+  <section class="panel">
+    <div class="panel-head"><strong id="channelName">Channel 1</strong><button id="power" class="power" type="button">POWER: ON</button></div>
+    <div class="scope">
+      <canvas id="scope"></canvas><span id="scopeChannel">CH1</span><span id="scopeWave">SINE</span>
+    </div>
+    <div class="readouts">
+      <label>Frequency<span class="value"><input id="frequency" type="number" min="10" max="1000000" step="any"><select id="frequencyUnit"><option>Hz</option><option>kHz</option><option>MHz</option></select></span></label>
+      <label>Amplitude<span class="value"><input id="amplitude" type="number" min="0" max="10" step=".1"><select id="amplitudeUnit"><option>V</option><option>mV</option></select></span></label>
+    </div>
+    <div class="controls">
+      <small>Waveform</small>
+      <div class="waves">
+        <button data-wave="sine" type="button">∿<br>Sine</button>
+        <button data-wave="square" type="button">⊓<br>Square</button>
+        <button data-wave="triangular" type="button">⌁<br>Triangle</button>
+      </div>
+      <label class="control">Frequency <output id="frequencyOutput"></output><input id="frequencyRange" type="range" min="10" max="1000000"></label>
+      <label class="control">Amplitude <output id="amplitudeOutput"></output><input id="amplitudeRange" type="range" min="0" max="1000"></label>
+    </div>
+  </section>
+  <div class="summary"><div id="summary1"></div><div id="summary2"></div></div>
+</main>
+<script>
+  const state = {
+    active: 1,
+    channels: {
+      1: { frequency: 10000, amplitude: 5, waveType: "sine", enabled: true, color: "#00ffaa" },
+      2: { frequency: 1000, amplitude: 3.5, waveType: "sine", enabled: true, color: "#ff6b35" }
+    }
+  };
+  const $ = id => document.getElementById(id);
+  const send = (path, params) => fetch(`${path}?${new URLSearchParams(params)}`).catch(() => {});
+  const formatFrequency = hz => hz >= 1e6 ? `${(hz / 1e6).toFixed(2)} MHz` : hz >= 1e3 ? `${(hz / 1e3).toFixed(2)} kHz` : `${hz.toFixed(2)} Hz`;
+  const channel = () => state.channels[state.active];
+
+  function render() {
+    const current = channel();
+    document.documentElement.style.setProperty("--active", current.color);
+    [1, 2].forEach(id => $(`tab${id}`).classList.toggle("active", state.active === id));
+    $("channelName").textContent = `Channel ${state.active}`;
+    $("scopeChannel").textContent = `CH${state.active}`;
+    $("scopeWave").textContent = current.waveType.toUpperCase();
+    $("power").textContent = `POWER: ${current.enabled ? "ON" : "OFF"}`;
+    $("power").classList.toggle("off", !current.enabled);
+    const frequencyUnit = current.frequency >= 1e6 ? "MHz" : current.frequency >= 1e3 ? "kHz" : "Hz";
+    const divisor = frequencyUnit === "MHz" ? 1e6 : frequencyUnit === "kHz" ? 1e3 : 1;
+    $("frequency").value = (current.frequency / divisor).toFixed(2);
+    $("frequencyUnit").value = frequencyUnit;
+    $("amplitude").value = ($("amplitudeUnit").value === "mV" ? current.amplitude * 1000 : current.amplitude).toFixed(2);
+    $("frequencyRange").value = current.frequency;
+    $("amplitudeRange").value = current.amplitude * 100;
+    $("frequencyOutput").textContent = formatFrequency(current.frequency);
+    $("amplitudeOutput").textContent = `${current.amplitude.toFixed(1)} V`;
+    document.querySelectorAll("[data-wave]").forEach(button => button.classList.toggle("active", button.dataset.wave === current.waveType));
+    [1, 2].forEach(id => {
+      const item = state.channels[id];
+      $(`summary${id}`).innerHTML = `<strong>CH${id}</strong>${item.enabled ? `${formatFrequency(item.frequency)} · ${item.amplitude.toFixed(1)} V` : "OFF"}`;
+      $(`summary${id}`).style.color = item.color;
+    });
+  }
+
+  function setFrequency(hz) {
+    channel().frequency = Math.max(10, Math.min(1e6, Number(hz)));
+    send("/setFreq", { ch: state.active, val: channel().frequency });
+    render();
+  }
+  $("tab1").onclick = () => switchChannel(1);
+  $("tab2").onclick = () => switchChannel(2);
+  function switchChannel(id) {
+    state.active = id;
+    send("/setActiveChannel", { ch: id });
+    render();
+  }
+  $("power").onclick = () => {
+    channel().enabled = !channel().enabled;
+    send("/setEnable", { ch: state.active, val: channel().enabled ? 1 : 0 });
+    render();
+  };
+  document.querySelectorAll("[data-wave]").forEach(button => button.onclick = () => {
+    channel().waveType = button.dataset.wave;
+    send("/setWave", { ch: state.active, type: button.dataset.wave });
+    render();
+  });
+  $("frequencyRange").oninput = event => setFrequency(event.target.value);
+  $("frequency").onchange = event => {
+    const multiplier = $("frequencyUnit").value === "MHz" ? 1e6 : $("frequencyUnit").value === "kHz" ? 1e3 : 1;
+    setFrequency(event.target.value * multiplier);
+  };
+  $("frequencyUnit").onchange = render;
+  $("amplitudeRange").oninput = event => {
+    channel().amplitude = Number(event.target.value) / 100;
+    send("/setAmp", { ch: state.active, val: channel().amplitude });
+    render();
+  };
+  $("amplitude").onchange = event => {
+    channel().amplitude = Math.max(0, Math.min(10, Number(event.target.value) / ($("amplitudeUnit").value === "mV" ? 1000 : 1)));
+    send("/setAmp", { ch: state.active, val: channel().amplitude });
+    render();
+  };
+  $("amplitudeUnit").onchange = render;
+
+  const canvas = $("scope");
+  const context = canvas.getContext("2d");
+  let phase = 0;
+  function draw() {
+    const ratio = devicePixelRatio || 1;
+    const width = canvas.clientWidth, height = canvas.clientHeight;
+    if (canvas.width !== width * ratio || canvas.height !== height * ratio) {
+      canvas.width = width * ratio; canvas.height = height * ratio; context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    }
+    context.clearRect(0, 0, width, height);
+    context.strokeStyle = "#1c2631"; context.lineWidth = 1;
+    for (let x = 0; x <= width; x += width / 8) { context.beginPath(); context.moveTo(x, 0); context.lineTo(x, height); context.stroke(); }
+    for (let y = 0; y <= height; y += height / 4) { context.beginPath(); context.moveTo(0, y); context.lineTo(width, y); context.stroke(); }
+    const current = channel();
+    if (current.enabled) {
+      context.beginPath(); context.strokeStyle = current.color; context.lineWidth = 2; context.shadowColor = current.color; context.shadowBlur = 10;
+      const cycles = Math.max(1.5, Math.min(10, Math.log10(current.frequency)));
+      for (let x = 0; x <= width; x++) {
+        const angle = x / width * Math.PI * 2 * cycles + phase;
+        let value = Math.sin(angle);
+        if (current.waveType === "square") value = value >= 0 ? 1 : -1;
+        if (current.waveType === "triangular") value = 2 / Math.PI * Math.asin(Math.sin(angle));
+        const y = height / 2 - value * (height / 2 - 14) * current.amplitude / 10;
+        x ? context.lineTo(x, y) : context.moveTo(x, y);
+      }
+      context.stroke(); context.shadowBlur = 0;
+    }
+    phase += .04;
+    requestAnimationFrame(draw);
+  }
+  render();
+  draw();
+  setInterval(async () => {
+    try {
+      const response = await fetch("/getStatus");
+      const data = await response.json();
+      state.active = data.activeChannel;
+      for (const id of [1, 2]) Object.assign(state.channels[id], data.channels[id]);
+      if (document.activeElement.tagName !== "INPUT") render();
+    } catch {}
+  }, 2000);
+</script>
+</body>
+</html>

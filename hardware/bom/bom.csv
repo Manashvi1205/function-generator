@@ -1,0 +1,16 @@
+component,quantity,cost_inr,notes
+ESP32 NodeMCU development board,1,275,
+"OLED display, 1.3-inch I2C 4-pin",1,169,
+AD9833,2,586,"293 each"
+Texas Instruments OPA810IDBVR op-amp,1,207,
+"BNC female connector, 50 ohm right-angle PCB mount",2,118,"59 each"
+KCD1-1-101 on/off rocker switch,1,6,
+Numpad,1,71,
+Buck converter,2,88,"44 each; described as from starter kit"
+Vero board,1,,"Report gives no cost"
+USB Type-C 4-pin female connector,1,29,
+Resistors (various),1 set,20,
+Capacitors (various),1 set,16,
+2.54 mm female header,70,,"Report gives no cost"
+Acrylic sheet (2 mm),1,160,
+Total,,1745,"Total transcribed from report; listed numeric rows sum to 1745"

@@ -1,0 +1,759 @@
+<! DOCTYPE html >
+<html lang = " en " >
+<head >
+<meta charset = " UTF -8 " / >
+<meta name = " viewport " content = " width = device - width , ␣ initial - scale =1.0 "
+/ >
+<title > Dual Channel Function Generator </ title >
+<link href = " https :// fonts . googleapis . com / css2 ? family = Space + Mono :
+wght@400 ;700& family = Syne : wght@400 ;600;700;800& display = swap " rel= "
+stylesheet " / >
+<style >
+/*
+TOKENS & RESET
+*/
+* , *:: before , *:: after { box - sizing : border - box ; margin : 0; padding
+: 0; }
+: root {
+-- radius - sm : 6 px ;
+-- radius - md : 10 px ;
+-- radius - lg : 16 px ;
+-- radius - xl : 22 px ;
+-- bg : #080 b10 ;
+-- surface : #0 e1319 ;
+-- surface -2: #131920;
+-- border : #1 c2330 ;
+-- border - light : #2 a3545 ;
+-- ch1 : #00 ffaa ;
+-- ch1 - dim : #00 ffaa22 ;
+-- ch1 - glow : #00 ffaa55 ;
+-- ch2 : # ff6b35 ;
+-- ch2 - dim : # ff6b3522 ;
+-- ch2 - glow : # ff6b3555 ;
+-- text - primary : # dde8f5 ;
+-- text - sec : #6 b7f99 ;
+-- text - muted : #384556;
+-- font - ui : ’ Syne ’ , sans - serif ;
+-- font - mono : ’ Space Mono ’ , monospace ;
+-- active : var ( - - ch1 ) ;
+-- active - dim : var ( - - ch1 - dim ) ;
+-- active - glow : var ( - - ch1 - glow ) ;
+}
+body {
+background : var ( - - bg ) ;
+font - family : var ( - - font - ui ) ;
+min - height : 100 vh ;
+display : flex ;
+justify - content : center ;
+align - items : flex - start ;
+padding : 28 px 16 px 60 px ;
+color : var ( - - text - primary ) ;
+background - image :
+linear - gradient ( rgba (0 ,255 ,170 ,.025) 1 px , transparent 1 px ) ,
+linear - gradient (90 deg , rgba (0 ,255 ,170 ,.025) 1 px , transparent 1
+px ) ;
+background - size : 40 px 40 px ;
+}
+. app { width : 100%; max - width : 500 px ; }
+/*
+HEADER
+*/
+. header {
+display : flex ;
+align - items : center ;
+gap : 16 px ;
+padding : 20 px 22 px ;
+background : var ( - - surface ) ;
+border : 1 px solid var ( - - border ) ;
+border - radius : var ( - - radius - xl ) ;
+margin - bottom : 14 px ;
+position : relative ;
+overflow : hidden ;
+}
+. header :: before {
+content : ’ ’;
+position : absolute ;
+inset : 0;
+background : linear - gradient (135 deg , var ( - - ch1 - dim ) 0% ,
+transparent 60%) ;
+pointer - events : none ;
+}
+. header - icon {
+width : 46 px ; height : 46 px ;
+border - radius : var ( - - radius - md ) ;
+background : var ( - - ch1 ) ;
+display : flex ; align - items : center ; justify - content : center ;
+font - size : 22 px ;
+box - shadow : 0 0 24 px var ( - - ch1 - glow ) ;
+flex - shrink : 0;
+position : relative ;
+}
+. header - title { font - size : 16 px ; font - weight : 800; letter - spacing :
+.02 em ; text - transform : uppercase ; }
+. header - sub { font - family : var ( - - font - mono ) ; font - size : 11 px ; color
+: var ( - - text - sec ) ; margin - top : 3 px ; letter - spacing : 0.08 em ; }
+. header - badge {
+margin - left : auto ; font - family : var ( - - font - mono ) ; font - size : 10 px
+; padding : 4 px 10 px ;
+border - radius : 999 px ; background : var ( - - ch1 - dim ) ; color : var ( - -
+ch1 ) ;
+border : 1 px solid var ( - - ch1 - glow ) ; white - space : nowrap ; flex -
+shrink : 0;
+}
+/*
+CHANNEL TABS
+*/
+. tab - bar { display : grid ; grid - template - columns : 1 fr 1 fr ; gap : 8 px ;
+margin - bottom : 14 px ; }
+. tab - btn {
+padding : 13 px 0; border - radius : var ( - - radius - md ) ; border : 1 px
+solid var ( - - border - light ) ;
+background : var ( - - surface ) ; color : var ( - - text - sec ) ; font - weight :
+; font - size : 13 px ;
+cursor : pointer ; font - family : var ( - - font - ui ) ; text - transform :
+uppercase ; letter - spacing : 0.06 em ;
+transition : all 0.2 s ease ; display : flex ; align - items : center ;
+justify - content : center ; gap : 9 px ;
+}
+. tab - btn : hover : not (. active - ch1 ) : not (. active - ch2 ) { border - color :
+var ( - - border - light ) ; color : var ( - - text - primary ) ; }
+. tab - dot { width : 8 px ; height : 8 px ; border - radius : 50%; }
+. tab - btn . active - ch1 {
+background : var ( - - ch1 - dim ) ; color : var ( - - ch1 ) ; border - color : var
+( - - ch1 - glow ) ;
+box - shadow : inset 0 0 20 px var ( - - ch1 - dim ) , 0 0 12 px var ( - - ch1 - dim
+) ;
+}
+. tab - btn . active - ch2 {
+background : var ( - - ch2 - dim ) ; color : var ( - - ch2 ) ; border - color : var
+( - - ch2 - glow ) ;
+box - shadow : inset 0 0 20 px var ( - - ch2 - dim ) , 0 0 12 px var ( - - ch2 - dim
+) ;
+}
+/*
+CHANNEL PANEL
+*/
+. ch - panel { background : var ( - - surface ) ; border : 1 px solid var ( - -
+border ) ; border - radius : var ( - - radius - xl ) ; overflow : hidden ; }
+. ch - panel - header { display : flex ; align - items : center ; justify -
+content : space - between ; padding : 14 px 20 px ; border - bottom : 1 px
+solid var ( - - border ) ; background : var ( - - surface -2) ; }
+. ch - panel - label { display : flex ; align - items : center ; gap : 10 px ; }
+. ch - dot { width : 10 px ; height : 10 px ; border - radius : 50%; flex -
+shrink : 0; }
+. ch - name { font - size : 13 px ; font - weight : 700; letter - spacing : 0.08
+em ; text - transform : uppercase ; }
+. ch - wave - badge {
+font - family : var ( - - font - mono ) ; font - size : 10 px ; padding : 3 px 9 px ;
+border - radius : 999 px ;
+background : var ( - - active - dim ) ; color : var ( - - active ) ; border : 1 px
+solid var ( - - active - glow ) ; text - transform : uppercase ; letter -
+spacing : 0.08 em ;
+}
+/* Oscilloscope */
+. canvas - wrap { padding : 14 px 16 px ; background : var ( - - bg ) ; border -
+bottom : 1 px solid var ( - - border ) ; position : relative ; }
+. canvas - corner { position : absolute ; font - family : var ( - - font - mono ) ;
+font - size : 9 px ; color : var ( - - text - muted ) ; letter - spacing : 0.06
+em ; }
+. canvas - corner . tl { top : 20 px ; left : 22 px ; } . canvas - corner . tr {
+top : 20 px ; right : 22 px ; }
+. canvas - corner . bl { bottom : 20 px ; left : 22 px ; } . canvas - corner . br {
+bottom : 20 px ; right : 22 px ; }
+canvas { width : 100%; height : 170 px ; border - radius : var ( - - radius - md
+) ; display : block ; }
+/* Stats */
+. stats - grid { display : grid ; grid - template - columns : 1 fr 1 fr ; gap :
+; border - bottom : 1 px solid var ( - - border ) ; }
+. stat - cell { padding : 16 px 20 px ; position : relative ; }
+. stat - cell : first - child { border - right : 1 px solid var ( - - border ) ; }
+. stat - label { font - family : var ( - - font - mono ) ; font - size : 10 px ; color
+: var ( - - text - sec ) ; letter - spacing : 0.1 em ; text - transform :
+uppercase ; margin - bottom : 6 px ; }
+. stat - value { display : flex ; align - items : baseline ; font - family :
+var ( - - font - mono ) ; font - size : 28 px ; font - weight : 700; letter -
+spacing : -0.03 em ; line - height : 1; }
+. stat - input { background : transparent ; border : none ; color : inherit
+; font - family : inherit ; font - size : inherit ; font - weight : inherit
+; letter - spacing : inherit ; width : 3.5 em ; padding : 0; margin : 0;
+outline : none ; }
+. stat - input :: - webkit - outer - spin - button , . stat - input :: - webkit - inner -
+spin - button { - webkit - appearance : none ; margin : 0; }
+. stat - input [ type = number ] { -moz - appearance : textfield ; appearance :
+textfield ; }
+. stat - select { background : transparent ; border : none ; color :
+inherit ; font - family : inherit ; outline : none ; cursor : pointer ;
+padding : 0; - webkit - appearance : none ; -moz - appearance : none ;
+appearance : none ; }
+. stat - select option { background : var ( - - surface -2) ; color : var ( - -
+text - primary ) ; }
+. stat - unit { font - size : 12 px ; font - weight : 400; margin - left : 2 px ;
+opacity : 0.7; }
+/* Controls */
+. controls - section { padding : 18 px 20 px ; display : flex ; flex -
+direction : column ; gap : 18 px ; }
+. section - label { font - family : var ( - - font - mono ) ; font - size : 10 px ;
+letter - spacing : 0.12 em ; text - transform : uppercase ; color : var ( - -
+text - sec ) ; margin - bottom : 10 px ; }
+/* Wave Buttons */
+. wave - btns { display : grid ; grid - template - columns : repeat (3 , 1 fr ) ;
+gap : 8 px ; }
+. wave - btn {
+padding : 12 px 6 px 10 px ; border - radius : var ( - - radius - md ) ; border :
+px solid var ( - - border - light ) ;
+background : var ( - - bg ) ; color : var ( - - text - sec ) ; font - family : var
+( - - font - ui ) ; font - size : 12 px ;
+font - weight : 600; cursor : pointer ; transition : all 0.18 s ease ;
+display : flex ; flex - direction : column ; align - items : center ;
+gap : 7 px ;
+}
+. wave - btn : hover : not (. active - ch1 ) : not (. active - ch2 ) { border - color :
+var ( - - border - light ) ; color : var ( - - text - primary ) ; }
+. wave - btn svg { width : 36 px ; height : 20 px ; stroke - width : 1.8;
+stroke - linecap : round ; stroke - linejoin : round ; fill : none ; }
+. wave - btn . active - ch1 { background : var ( - - ch1 - dim ) ; color : var ( - - ch1
+) ; border - color : var ( - - ch1 - glow ) ; box - shadow : 0 0 12 px var ( - - ch1
+- dim ) ; }
+. wave - btn . active - ch1 svg { stroke : var ( - - ch1 ) ; }
+. wave - btn . active - ch2 { background : var ( - - ch2 - dim ) ; color : var ( - - ch2
+) ; border - color : var ( - - ch2 - glow ) ; box - shadow : 0 0 12 px var ( - - ch2
+- dim ) ; }
+. wave - btn . active - ch2 svg { stroke : var ( - - ch2 ) ; }
+. wave - btn : not (. active - ch1 ) : not (. active - ch2 ) svg { stroke : var ( - -
+text - muted ) ; }
+/* Sliders */
+. slider - header { display : flex ; justify - content : space - between ;
+align - items : baseline ; margin - bottom : 10 px ; }
+. slider - current { font - family : var ( - - font - mono ) ; font - size : 12 px ;
+color : var ( - - active ) ; font - weight : 700; }
+. slider - track - wrap { position : relative ; height : 28 px ; display :
+flex ; align - items : center ; }
+input [ type = range ] { - webkit - appearance : none ; appearance : none ;
+width : 100%; height : 4 px ; border - radius : 2 px ; cursor : pointer ;
+outline : none ; border : none ; display : block ; position : relative ;
+z - index : 1; }
+. slider - green { background : linear - gradient ( to right , var ( - - ch1 )
+var ( - - pct ,0%) , var ( - - border - light ) var ( - - pct ,0%) ) ; }
+. slider - green :: - webkit - slider - runnable - track { height : 4 px ; border -
+radius : 2 px ; }
+. slider - green :: - webkit - slider - thumb {
+- webkit - appearance : none ; width : 20 px ; height : 20 px ; border -
+radius : 50%; background : var ( - - bg ) ;
+border : 2 px solid var ( - - ch1 ) ; box - shadow : 0 0 14 px var ( - - ch1 - glow
+) ; cursor : pointer ; margin - top : -8 px ; transition : box - shadow
+.15 s ;
+}
+. slider - green : active :: - webkit - slider - thumb { box - shadow : 0 0 22 px
+var ( - - ch1 ) ; }
+. slider - orange { background : linear - gradient ( to right , var ( - - ch2 )
+var ( - - pct ,0%) , var ( - - border - light ) var ( - - pct ,0%) ) ; }
+. slider - orange :: - webkit - slider - runnable - track { height : 4 px ; border
+- radius : 2 px ; }
+. slider - orange :: - webkit - slider - thumb {
+- webkit - appearance : none ; width : 20 px ; height : 20 px ; border -
+radius : 50%; background : var ( - - bg ) ;
+border : 2 px solid var ( - - ch2 ) ; box - shadow : 0 0 14 px var ( - - ch2 - glow
+) ; cursor : pointer ; margin - top : -8 px ; transition : box - shadow
+.15 s ;
+}
+. slider - orange : active :: - webkit - slider - thumb { box - shadow : 0 0 22 px
+var ( - - ch2 ) ; }
+. slider - range - labels { display : flex ; justify - content : space -
+between ; margin - top : 6 px ; }
+. slider - min , . slider - max { font - family : var ( - - font - mono ) ; font - size
+: 9 px ; color : var ( - - text - muted ) ; letter - spacing : 0.04 em ; }
+/* Summary Bar */
+. summary - bar { display : grid ; grid - template - columns : 1 fr 1 fr ; gap :
+px ; margin - top : 14 px ; }
+. summary - chip { background : var ( - - surface ) ; border : 1 px solid var
+( - - border ) ; border - radius : var ( - - radius - md ) ; padding : 10 px 14 px ;
+display : flex ; align - items : center ; gap : 10 px ; }
+. summary - pip { width : 7 px ; height : 7 px ; border - radius : 50%; flex -
+shrink : 0; }
+. summary - ch - label { font - size : 10 px ; font - weight : 700; letter -
+spacing : 0.1 em ; text - transform : uppercase ; color : var ( - - text - sec
+) ; margin - bottom : 3 px ; }
+. summary - vals { font - family : var ( - - font - mono ) ; font - size : 11 px ;
+color : var ( - - text - primary ) ; }
+</ style >
+</ head >
+<body >
+<div class = " app " >
+<div class = " header " id= " appHeader " >
+<div class = " header - icon " > </div >
+<div >
+<div class = " header - title " > Function Generator </div >
+<div class = " header - sub " > DUAL CHANNEL WAVEFORM CONTROL </div >
+</div >
+<div class = " header - badge " id= " liveBadge " > LIVE </div >
+</div >
+<div class = " tab - bar " >
+<button class = " tab - btn ␣ active - ch1 " id= " tab1 " onclick = " UI .
+switchChannel (1) " >
+<span class = " tab - dot " id= " dot1 " style = " background : var ( - - ch1 ) ; box -
+shadow :0 ␣ 0 ␣ 6 px ␣ var ( - - ch1 ) " > </ span >
+Channel 1
+</ button >
+<button class = " tab - btn " id= " tab2 " onclick = " UI . switchChannel (2) " >
+<span class = " tab - dot " id= " dot2 " style = " background : var ( - - ch2 ) ; box -
+shadow :0 ␣ 0 ␣ 6 px ␣ var ( - - ch2 ) " > </ span >
+Channel 2
+</ button >
+</div >
+<div class = " ch - panel " >
+<div class = " ch - panel - header " >
+<div class = " ch - panel - label " >
+<div class = " ch - dot " id= " chDot " style = " background : var ( - - ch1 ) ; box
+- shadow :0 ␣ 0 ␣ 8 px ␣ var ( - - ch1 ) " > </div >
+<span class = " ch - name " id= " chName " > Channel 1 </ span >
+</div >
+<div class = " ch - wave - badge " id= " chWaveBadge " > Sine Wave </div >
+</div >
+<div class = " canvas - wrap " >
+<div class = " canvas - corner ␣ tl " id= " cornerTL " > CH1 </div >
+<div class = " canvas - corner ␣ tr " id= " cornerTR " > SINE </div >
+<div class = " canvas - corner ␣ bl " > OSC </div >
+<div class = " canvas - corner ␣ br " id= " cornerBR " > LIVE </div >
+< canvas id= " waveCanvas " > </ canvas >
+</div >
+<div class = " stats - grid " >
+<div class = " stat - cell " >
+<div class = " stat - label " > Frequency </div >
+<div class = " stat - value " id= " freqDisplayWrap " style = " color : var
+( - - ch1 ) " >
+<input type = " number " id= " freqInput " class = " stat - input " value =
+" 10.00 " step = " any " onchange = " UI . onFreqInput ( this . value ) " /
+>
+<select class = " stat - unit ␣ stat - select " id= " freqUnit " onchange =
+" UI . onFreqUnitChange ( this . value ) " >
+<option value = " Hz " > Hz </ option >
+<option value = " kHz " > kHz </ option >
+<option value = " MHz " > MHz </ option >
+</ select >
+</div >
+</div >
+<div class = " stat - cell " >
+<div class = " stat - label " > Amplitude </div >
+<div class = " stat - value " id= " ampDisplayWrap " style = " color : var ( - -
+ch1 ) " >
+<input type = " number " id= " ampInput " class = " stat - input " value = "
+.0 " step = " any " onchange = " UI . onAmpInput ( this . value ) " / >
+<span class = " stat - unit " id= " ampUnit " >V </ span >
+</div >
+</div >
+</div >
+<div class = " controls - section " >
+<div >
+<div class = " section - label " > Waveform </div >
+<div class = " wave - btns " >
+<button class = " wave - btn ␣ active - ch1 " id= " btn - sine " onclick = " UI
+. setWave ( ’ sine ’) " >
+< svg viewBox = " 0 ␣ 0 ␣ 36 ␣ 20 " > < path d = " M2 ␣ 10 ␣ C6 ␣ 2 , ␣ 10 ␣ 2 , ␣ 13 ␣ 10 ␣
+C16 ␣ 18 , ␣ 20 ␣ 18 , ␣ 23 ␣ 10 ␣ C26 ␣ 2 , ␣ 30 ␣ 2 , ␣ 34 ␣ 10 " / > </ svg > Sine
+</ button >
+<button class = " wave - btn " id= " btn - square " onclick = " UI . setWave
+( ’ square ’) " >
+< svg viewBox = " 0 ␣ 0 ␣ 36 ␣ 20 " > < path d = " M2 ␣ 15 ␣ L2 ␣ 5 ␣ L12 ␣ 5 ␣ L12 ␣ 15 ␣
+L22 ␣ 15 ␣ L22 ␣ 5 ␣ L32 ␣ 5 ␣ L32 ␣ 15 ␣ L34 ␣ 15 " / > </ svg > Square
+</ button >
+<button class = " wave - btn " id= " btn - triangular " onclick = " UI .
+setWave ( ’ triangular ’) " >
+< svg viewBox = " 0 ␣ 0 ␣ 36 ␣ 20 " > < path d = " M2 ␣ 15 ␣ L9 ␣ 5 ␣ L18 ␣ 15 ␣ L27 ␣ 5 ␣
+L34 ␣ 15 " / > </ svg > Triangle
+</ button >
+</div >
+</div >
+<div class = " slider - block " >
+<div class = " slider - header " >
+<div class = " section - label " style = " margin - bottom :0 " > Frequency <
+/div >
+<div class = " slider - current " id= " freqSliderVal " > 10.00 kHz </div
+>
+</div >
+<div class = " slider - track - wrap " >
+<input type = " range " class = " slider - green " id= " freqSlider " min =
+" 10 " max = " 1000000 " value = " 10000 " oninput = " UI . onFreqChange (
+this . value ) " / >
+</div >
+<div class = " slider - range - labels " >
+<span class = " slider - min " > 10 Hz </ span > <span class = " slider - max "
+id= " freqSliderMax " > 1.00 MHz </ span >
+</div >
+</div >
+<div class = " slider - block " >
+<div class = " slider - header " >
+<div class = " section - label " style = " margin - bottom :0 " > Amplitude <
+/div >
+<div class = " slider - current " id= " ampSliderVal " > 5.0 V </div >
+</div >
+<div class = " slider - track - wrap " >
+<input type = " range " class = " slider - green " id= " ampSlider " min = "
+" max = " 1000 " value = " 500 " oninput = " UI . onAmpChange ( this .
+value ) " / >
+</div >
+<div class = " slider - range - labels " >
+<span class = " slider - min " >0 V </ span > <span class = " slider - max "
+id= " ampSliderMax " > 10.0 V </ span >
+</div >
+</div >
+</div >
+</div >
+<div class = " summary - bar " >
+<div class = " summary - chip " >
+<div class = " summary - pip " style = " background : var ( - - ch1 ) ; box - shadow
+:0 ␣ 0 ␣ 6 px ␣ var ( - - ch1 ) " > </div >
+<div class = " summary - info " >
+<div class = " summary - ch - label " > CH1 </div >
+<div class = " summary - vals " id= " summaryCh1 " > 10.00 kHz 5.0 V </
+div >
+</div >
+</div >
+<div class = " summary - chip " >
+<div class = " summary - pip " style = " background : var ( - - ch2 ) ; box - shadow
+:0 ␣ 0 ␣ 6 px ␣ var ( - - ch2 ) " > </div >
+<div class = " summary - info " >
+<div class = " summary - ch - label " > CH2 </div >
+<div class = " summary - vals " id= " summaryCh2 " > 1.00 kHz 3.5 V </
+div >
+</div >
+</div >
+</div >
+</div >
+<script >
+/*
+MODULE : Network ( NEW )
+Handles API communication to the ESP32 backend
+*/
+const Network = (() = > {
+function send ( endpoint , params = {}) {
+const query = new URLSearchParams ( params ) . toString () ;
+const url = ‘/${ endpoint }${ query ? ’? ’ + query : ’ ’} ‘;
+fetch ( url ) . catch ( err = > console . error ( ’ Network error : ’ , err ) ) ;
+}
+// Prevents flooding the ESP32 while the user is actively dragging a
+slider
+let debounceTimer ;
+function sendDebounced ( endpoint , params = {} , delay = 100) {
+clearTimeout ( debounceTimer ) ;
+debounceTimer = setTimeout (() = > send ( endpoint , params ) , delay ) ;
+}
+async function getStatus () {
+try {
+const response = await fetch ( ’/ getStatus ’) ;
+return await response . json () ;
+} catch ( err ) {
+console . error ( ’ Sync error : ’ , err ) ;
+return null ;
+}
+}
+return { send , sendDebounced , getStatus };
+}) () ;
+/*
+MODULE : State
+*/
+const State = (() = > {
+const AMP_STEPS = 1000;
+const data = {
+activeChannel : 1 ,
+maxFreq : 1000000 ,
+maxAmp : 10 ,
+channels : {
+1: { frequency : 10000 , amplitude : 5 , waveType : ’ sine ’ , color :
+’#00 ffaa ’ , name : ’CH1 ’ } ,
+2: { frequency : 1000 , amplitude : 3.5 , waveType : ’ sine ’ , color :
+’# ff6b35 ’ , name : ’CH2 ’ } ,
+}
+};
+return {
+AMP_STEPS , get : () = > data , getChannel : ( ch ) = > data . channels [ ch ] ,
+getActive : () = > data . channels [ data . activeChannel ] ,
+getActiveId : () = > data . activeChannel ,
+setActiveId : ( ch ) = > { data . activeChannel = ch ; } ,
+setMaxFreq : ( v ) = > { data . maxFreq = v ; } , setMaxAmp : ( v ) = > { data .
+maxAmp = v ; } ,
+setFreq : ( ch , v ) = > { data . channels [ ch ]. frequency = v ; } ,
+setAmp : ( ch , v ) = > { data . channels [ ch ]. amplitude = v ; } ,
+setWave : ( ch , t ) = > { data . channels [ ch ]. waveType = t ; } ,
+};
+}) () ;
+/*
+MODULE : Format
+*/
+const Format = (() = > {
+function freq ( hz ) {
+if ( hz >= 1 e6 ) return ‘${( hz / 1 e6 ) . toFixed (2) } MHz ‘;
+if ( hz >= 1 e3 ) return ‘${( hz / 1 e3 ) . toFixed (2) } kHz ‘;
+return ‘${ hz } Hz ‘;
+}
+function amp ( v ) { return ‘${ v . toFixed (1) } V ‘; }
+function freqLabel ( hz ) {
+if ( hz >= 1 e6 ) return { num : ( hz / 1 e6 ) . toFixed (2) , unit : ’MHz ’ };
+if ( hz >= 1 e3 ) return { num : ( hz / 1 e3 ) . toFixed (2) , unit : ’kHz ’ };
+return { num : ‘${ hz } ‘ , unit : ’Hz ’ };
+}
+function ampLabel ( v ) { return { num : v . toFixed (1) , unit : ’V ’ }; }
+return { freq , amp , freqLabel , ampLabel };
+}) () ;
+/*
+MODULE : Oscilloscope
+*/
+const Oscilloscope = (() = > {
+const canvas = document . getElementById ( ’ waveCanvas ’) ;
+const ctx = canvas . getContext ( ’2d ’) ;
+let phase = 0 , animId = null ;
+function resize () {
+canvas . width = canvas . offsetWidth * window . devicePixelRatio ||
+canvas . offsetWidth ;
+canvas . height = canvas . offsetHeight * window . devicePixelRatio ||
+canvas . offsetHeight ;
+ctx . scale ( window . devicePixelRatio , window . devicePixelRatio ) ;
+}
+new ResizeObserver ( resize ) . observe ( canvas ) ;
+resize () ;
+function drawGrid (W , H ) {
+ctx . strokeStyle = ’ rgba (255 ,255 ,255 ,0.04) ’; ctx . lineWidth = 1;
+const cols = 8 , rows = 4;
+for ( let i = 1; i < cols ; i++) { ctx . beginPath () ; ctx . moveTo (( W /
+cols ) *i, 0) ; ctx . lineTo (( W / cols ) *i, H ) ; ctx . stroke () ; }
+for ( let i = 1; i < rows ; i++) { ctx . beginPath () ; ctx . moveTo (0 , ( H /
+rows ) *i) ; ctx . lineTo (W , ( H / rows ) *i) ; ctx . stroke () ; }
+ctx . strokeStyle = ’ rgba (255 ,255 ,255 ,0.09) ’; ctx . setLineDash ([4 , 6])
+;
+ctx . beginPath () ; ctx . moveTo (0 , H /2) ; ctx . lineTo (W , H /2) ; ctx . stroke
+() ; ctx . setLineDash ([]) ;
+}
+function computeY ( waveType , t ) {
+if ( waveType === ’ sine ’) return Math . sin ( t ) ;
+if ( waveType === ’ square ’) return Math . sin ( t ) >= 0 ? 1 : -1;
+const pos = (( t / (2 * Math . PI ) ) % 1 + 1) % 1;
+return pos < 0.5 ? 4 * pos - 1 : -4 * pos + 3;
+}
+function drawWaveform (W , H , ch ) {
+const s = State . get () ;
+const cycles = Math . max (1 , Math . min (12 , ( ch . frequency / s. maxFreq )
+* 80 + 1.5) ) ;
+const ampHeight = ( H / 2 - 14) * ( ch . amplitude / s. maxAmp ) ;
+ctx . beginPath () ;
+for ( let x = 0; x <= W ; x ++) {
+const t = ( x / W ) * cycles * Math . PI * 2 + phase ;
+const py = H / 2 - computeY ( ch . waveType , t ) * ampHeight ;
+x === 0 ? ctx . moveTo (x , py ) : ctx . lineTo (x , py ) ;
+}
+ctx . strokeStyle = ch . color + ’55 ’; ctx . lineWidth = 6; ctx .
+shadowColor = ch . color ; ctx . shadowBlur = 20; ctx . stroke () ;
+ctx . shadowBlur = 0; ctx . beginPath () ;
+for ( let x = 0; x <= W ; x ++) {
+const t = ( x / W ) * cycles * Math . PI * 2 + phase ;
+const py = H / 2 - computeY ( ch . waveType , t ) * ampHeight ;
+x === 0 ? ctx . moveTo (x , py ) : ctx . lineTo (x , py ) ;
+}
+ctx . strokeStyle = ch . color ; ctx . lineWidth = 2; ctx . shadowColor = ch
+. color ; ctx . shadowBlur = 8; ctx . stroke () ; ctx . shadowBlur = 0;
+}
+function draw () {
+const W = canvas . offsetWidth , H = canvas . offsetHeight ;
+if (! W || ! H ) { animId = requestAnimationFrame ( draw ) ; return ; }
+ctx . fillStyle = ’#06090 e ’; ctx . fillRect (0 , 0 , W , H ) ;
+drawGrid (W , H ) ; drawWaveform (W , H , State . getActive () ) ;
+phase += 0.045; animId = requestAnimationFrame ( draw ) ;
+}
+return { start : draw };
+}) () ;
+/*
+MODULE : SliderUtil
+
+*/
+const SliderUtil = {
+updateFill ( el ) {
+const pct = (( el . value - el . min ) / ( el . max - el . min ) ) * 100;
+el . style . setProperty ( ’ --pct ’ , ‘${ Math .max (0 , pct )}% ‘);
+}
+};
+/*
+MODULE : UI
+*/
+const UI = (() = > {
+function setFreqDisplay (hz , color ) {
+const { num , unit } = Format . freqLabel (hz);
+const fi = document . getElementById ( ’ freqInput ’);
+const fu = document . getElementById ( ’ freqUnit ’);
+if (fi && document . activeElement !== fi) fi. value = num ;
+if (fu && document . activeElement !== fu) fu. value = unit ;
+document . getElementById ( ’ freqDisplayWrap ’). style . color = color ;
+document . getElementById ( ’ freqSliderVal ’). textContent = Format . freq (
+hz);
+}
+function setAmpDisplay (v, color ) {
+const { num , unit } = Format . ampLabel (v);
+const ai = document . getElementById ( ’ ampInput ’);
+const au = document . getElementById ( ’ ampUnit ’);
+if (ai && document . activeElement !== ai) ai. value = num ;
+if (au) au. textContent = unit ;
+document . getElementById ( ’ ampDisplayWrap ’). style . color = color ;
+document . getElementById ( ’ ampSliderVal ’). textContent = Format .amp (v)
+;
+}
+function updateSummary () {
+const s = State .get ();
+const c1 = s. channels [1] , c2 = s. channels [2];
+document . getElementById ( ’ summaryCh1 ’). textContent = ‘${ Format . freq (
+c1. frequency )} ${ Format .amp (c1. amplitude )} ‘;
+document . getElementById ( ’ summaryCh2 ’). textContent = ‘${ Format . freq (
+c2. frequency )} ${ Format .amp (c2. amplitude )} ‘;
+}
+function setWaveBtns ( waveType , chId ) {
+const cls = ‘active -ch$ { chId } ‘;
+[ ’sine ’ , ’square ’ , ’triangular ’]. forEach (t = > {
+document . getElementById ( ‘btn -${t} ‘). className = ’wave -btn ’ + (t
+=== waveType ? ‘ ${cls} ‘ : ’ ’);
+});
+}
+function updateCSSActiveVars (color , dimColor , glowColor ) {
+const root = document . documentElement . style ;
+root . setProperty ( ’ --active ’ , color ) ;
+root . setProperty ( ’ --active -dim ’ , dimColor );
+root . setProperty ( ’ --active - glow ’ , glowColor ) ;
+}
+/* Public API */
+function switchChannel ( ch ) {
+if ( State . getActiveId () !== ch ) {
+Network . send ( ’ setActiveChannel ’ , { ch : ch }) ;
+}
+State . setActiveId ( ch ) ;
+const chData = State . getChannel ( ch ) ;
+const s = State . get () ;
+const color = chData .color , isDimColor = color + ’22 ’ , isGlowColor
+= color + ’55 ’;
+updateCSSActiveVars (color , isDimColor , isGlowColor ) ;
+document . getElementById ( ’ tab1 ’) . className = ’tab - btn ’ + ( ch === 1 ?
+’ active - ch1 ’ : ’ ’) ;
+document . getElementById ( ’ tab2 ’) . className = ’tab - btn ’ + ( ch === 2 ?
+’ active - ch2 ’ : ’ ’) ;
+document . getElementById ( ’ chDot ’) . style . cssText = ‘background :${
+color }; box - shadow :0 0 8 px ${ color } ‘;
+document . getElementById ( ’ chName ’) . textContent = ‘ Channel ${ ch } ‘;
+const waveNames = { sine : ’ Sine Wave ’ , square : ’ Square Wave ’ ,
+triangular : ’ Triangle Wave ’ };
+document . getElementById ( ’ chWaveBadge ’) . textContent = waveNames [
+chData . waveType ];
+document . getElementById ( ’ cornerTL ’) . textContent = ‘ CH$ { ch } ‘;
+document . getElementById ( ’ cornerTR ’) . textContent = chData . waveType .
+toUpperCase () ;
+const sliderClass = ch === 1 ? ’ slider - green ’ : ’ slider - orange ’;
+const fs = document . getElementById ( ’ freqSlider ’) , as = document .
+getElementById ( ’ ampSlider ’) ;
+fs . className = sliderClass ; as . className = sliderClass ;
+fs . value = chData . frequency ; as . value = Math . round (( chData .
+amplitude / s. maxAmp ) * State . AMP_STEPS ) ;
+SliderUtil . updateFill ( fs ) ; SliderUtil . updateFill ( as ) ;
+setWaveBtns ( chData . waveType , ch ) ;
+setFreqDisplay ( chData . frequency , color ) ;
+setAmpDisplay ( chData . amplitude , color ) ;
+updateSummary () ;
+}
+function onFreqChange ( val ) {
+const hz = Number ( val ) ;
+const ch = State . getActiveId () ;
+State . setFreq ( ch , hz ) ;
+setFreqDisplay ( hz , State . getActive () . color ) ;
+SliderUtil . updateFill ( document . getElementById ( ’ freqSlider ’) ) ;
+updateSummary () ;
+// Notify backend
+Network . sendDebounced ( ’ setFreq ’ , { ch : ch , val : hz }) ;
+}
+function onAmpChange ( val ) {
+const s = State . get () ;
+const amp = parseFloat ((( Number ( val ) / State . AMP_STEPS ) * s. maxAmp )
+. toFixed (1) ) ;
+const ch = State . getActiveId () ;
+State . setAmp ( ch , amp ) ;
+setAmpDisplay ( amp , State . getActive () . color ) ;
+SliderUtil . updateFill ( document . getElementById ( ’ ampSlider ’) ) ;
+updateSummary () ;
+// Notify backend
+Network . sendDebounced ( ’ setAmp ’ , { ch : ch , val : amp }) ;
+}
+function setWave ( type ) {
+const ch = State . getActiveId () ;
+if ( State . getChannel ( ch ) . waveType !== type ) {
+Network . send ( ’ setWave ’ , { ch : ch , type : type }) ;
+}
+State . setWave ( ch , type ) ;
+setWaveBtns (type , ch ) ;
+const waveNames = { sine : ’ Sine Wave ’ , square : ’ Square Wave ’ ,
+triangular : ’ Triangle Wave ’ };
+document . getElementById ( ’ chWaveBadge ’) . textContent = waveNames [ type
+];
+document . getElementById ( ’ cornerTR ’) . textContent = type . toUpperCase
+() ;
+}
+function onFreqInput ( valStr ) {
+let unit = document . getElementById ( ’ freqUnit ’) . value ;
+let num = parseFloat ( valStr ) ;
+if ( isNaN ( num ) ) return ;
+let hz = num ;
+if ( unit === ’kHz ’) hz *= 1 e3 ;
+else if ( unit === ’MHz ’) hz *= 1 e6 ;
+const maxFreq = State . get () . maxFreq ;
+hz = Math . max (10 , Math . min ( hz , maxFreq ) ) ;
+const ch = State . getActiveId () ;
+State . setFreq ( ch , hz ) ;
+setFreqDisplay ( hz , State . getActive () . color ) ;
+const fs = document . getElementById ( ’ freqSlider ’) ;
+fs . value = hz ;
+SliderUtil . updateFill ( fs ) ;
+updateSummary () ;
+// Notify backend
+Network . send ( ’ setFreq ’ , { ch : ch , val : hz }) ;
+}
+function onFreqUnitChange ( unitValue ) {
+onFreqInput ( document . getElementById ( ’ freqInput ’) . value ) ;
+}
+function onAmpInput ( valStr ) {
+let num = parseFloat ( valStr ) ;
+if ( isNaN ( num ) ) return ;
+const maxAmp = State . get () . maxAmp ;
+let amp = Math . max (0 , Math . min ( num , maxAmp ) ) ;
+const ch = State . getActiveId () ;
+State . setAmp ( ch , amp ) ;
+setAmpDisplay ( amp , State . getActive () . color ) ;
+const as = document . getElementById ( ’ ampSlider ’) ;
+as . value = Math . round (( amp / maxAmp ) * State . AMP_STEPS ) ;
+SliderUtil . updateFill ( as ) ;
+updateSummary () ;
+// Notify backend
+Network . send ( ’ setAmp ’ , { ch : ch , val : amp }) ;
+}
+async function syncWithHardware () {
+const data = await Network . getStatus () ;
+if (! data ) return ;
+// 1. Update internal state
+const s = State . get () ;
+s. activeChannel = data . activeChannel ;
+for ( let id in data . channels ) {
+State . setFreq (id , data . channels [id ]. frequency ) ;
+State . setAmp (id , data . channels [id ]. amplitude ) ;
+State . setWave (id , data . channels [id ]. waveType ) ;
+}
+// 2. Refresh the UI elements
+// We only refresh if the user isn ’ t currently typing / dragging
+if ( document . activeElement . tagName !== ’INPUT ’) {
+UI . switchChannel (s. activeChannel ) ;
+}
+}
+return { switchChannel , onFreqChange , onAmpChange , setWave ,
+onFreqInput , onFreqUnitChange , onAmpInput , syncWithHardware };
+}) () ;
+/*
+INIT
+*/
+( function init () {
+SliderUtil . updateFill ( document . getElementById ( ’ freqSlider ’) ) ;
+SliderUtil . updateFill ( document . getElementById ( ’ ampSlider ’) ) ;
+Oscilloscope . start () ;
+setInterval (() = > UI . syncWithHardware () , 1000) ;
+}) () ;
+</ script >
+</ body >
+</ html >
+.10.3 Web Server Backend

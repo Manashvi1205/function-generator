@@ -4,12 +4,6 @@ An academic function-generator prototype built around an ESP32 and two AD9833 di
 digital synthesis (DDS) modules. The design combines local keypad/OLED controls with a
 browser interface and analog signal conditioning for two BNC outputs.
 
-> [!IMPORTANT]
-> This repository was reconstructed from a 109-page extracted report and PDF-extracted
-> code listings. The supplied package did not contain the original firmware repository,
-> editable CAD/schematic sources, or PCB/Gerber files. See
-> [Repository status](#repository-status) before attempting a hardware build.
-
 ![Assembled acrylic function-generator prototype](function_generator_source/assets/embedded_images/img-007.jpg)
 
 ## Features described by the report
